@@ -1,3 +1,4 @@
+import logging
 import socket
 import config
 import threading
@@ -27,27 +28,27 @@ def dial(retries=10, backoff=0.5):
         s.connect((host, config.PORT))
         # success
         config.PEERS[host]["send_channel"] = s
-        print(f"[SEND] Connected to {host}:{config.PORT}")
+        logging.debug(f"dial: Connected to {host}:{config.PORT}")
         with ready_cond:
           ready_cond.notify_all()
         break
       except Exception as e:
         attempt += 1
-        print(f"[SEND] Failed to connect to {host} (attempt {attempt}/{retries}): {e}")
+        logging.debug(f"dial: Failed to connect to {host} (attempt {attempt}/{retries}): {e}")
         time.sleep(backoff)
     else:
-      print(f"[SEND] Giving up connecting to {host} after {retries} attempts")
+      logging.warning(f"dial: Giving up connecting to {host} after {retries} attempts")
 
 def handle_connection(conn, addr):
   ip, port = addr
-  print(f"[RECV] Incoming connection from {ip}:{port}")
+  logging.debug(f"handle_connection: Incoming connection from {ip}:{port}")
 
   try:
     hostname = socket.gethostbyaddr(ip)[0]
   except socket.herror:
     hostname = ip  # fallback if no reverse DNS
 
-  print(f"[RECV] Resolved hostname: {hostname}")
+  logging.debug(f"handle_connection: Resolved hostname: {hostname}")
 
   peer_name = extract_peer_name(hostname)
   config.PEERS[peer_name]["recv_channel"] = conn
@@ -69,9 +70,13 @@ def listen():
   # Signal that we are now listening so dialers can proceed.
   server_ready.set()
 
-  print(f"Listening for peers on port {config.PORT}...")
+  logging.debug(f"Listening for peers on port {config.PORT}...")
 
-  while True:
+  recv_channels = sum(
+    1 for host, ch in config.PEERS.items() if ch.get("recv_channel") is not None
+  )
+
+  while recv_channels != expected_peers():
     conn, addr = server.accept()
     t = threading.Thread(target=handle_connection, args=(conn, addr), daemon=True)
     t.start()
@@ -84,7 +89,7 @@ def start_listener(wait=True, timeout=5.0):
     # races where dial() runs before the listener is ready.
     ok = server_ready.wait(timeout=timeout)
     if not ok:
-      print(f"[WARN] Listener didn't become ready within {timeout} seconds")
+      logging.warning(f"Listener didn't become ready within {timeout} seconds")
 
 def expected_peers():
   return len(config.PEER_NAMES) - 1

@@ -1,6 +1,12 @@
+import logging
 import argparse
 import keys
 from toy_hashgraph import Hashgraph
+
+logging.basicConfig(
+  level=logging.WARN,
+  format='[%(levelname)s] %(asctime)s - %(message)s'
+)
 
 # System parameters
 PEER_NAMES = ["alpha", "bravo", "charlie", "delta"]
@@ -43,11 +49,11 @@ def parse():
   return parser.parse_args()
 
 def log():
-  print("=== Node Configuration ===")
-  print(f"PEER_NAMES:  {PEER_NAMES}")
-  print(f"NAME:        {NAME}")
-  print(f"PORT:        {PORT}")
-  print(f"PEERS:       {PEERS}")
-  print(f"PRIVATE_KEY: {PRIVATE_KEY}")
-  print(f"PUBLIC_KEY:  {PUBLIC_KEY}")
-  print("==========================")
+  logging.debug("=== Node Configuration ===")
+  logging.debug(f"PEER_NAMES:  {PEER_NAMES}")
+  logging.debug(f"NAME:        {NAME}")
+  logging.debug(f"PORT:        {PORT}")
+  logging.debug(f"PEERS:       {PEERS}")
+  logging.debug(f"PRIVATE_KEY: {PRIVATE_KEY}")
+  logging.debug(f"PUBLIC_KEY:  {PUBLIC_KEY}")
+  logging.debug("==========================")
