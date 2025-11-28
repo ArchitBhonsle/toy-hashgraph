@@ -1,10 +1,11 @@
 import logging
 import argparse
+import threading
+
 import keys
-from toy_hashgraph import Hashgraph
 
 logging.basicConfig(
-  level=logging.WARN,
+  level=logging.INFO,
   format='[%(levelname)s] %(asctime)s - %(message)s'
 )
 
@@ -16,6 +17,8 @@ PEERS = None
 PUBLIC_KEY = None
 PRIVATE_KEY = None
 HASHGRAPH = None
+
+keys_ready_cond = threading.Condition()
 
 def setup():
   global NAME
@@ -39,8 +42,6 @@ def setup():
 
   NAME = PEER_NAMES[args.id]
   PRIVATE_KEY, PUBLIC_KEY = keys.generate()
-  # TODO: Uncomment when Hashgraph initialization is ready
-  # HASHGRAPH = Hashgraph(NAME, PRIVATE_KEY, {name: config.PEERS[name]["id"] for name in PEER_NAMES})
 
 def parse():
   parser = argparse.ArgumentParser()
