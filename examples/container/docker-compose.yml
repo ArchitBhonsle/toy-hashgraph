@@ -1,0 +1,32 @@
+services:
+  alpha:
+    image: hashgraph
+    networks:
+      - mynetwork
+    hostname: "alpha"
+    command: -id 0
+
+  bravo:
+    image: hashgraph
+    networks:
+      - mynetwork
+    hostname: "bravo"
+    command: -id 1
+
+  charlie:
+    image: hashgraph
+    networks:
+      - mynetwork
+    hostname: "charlie"
+    command: -id 2
+
+  delta:
+    image: hashgraph
+    networks:
+      - mynetwork
+    hostname: "delta"
+    command: -id 3
+
+networks:
+  # The presence of these objects is sufficient to define them
+  mynetwork: {}
