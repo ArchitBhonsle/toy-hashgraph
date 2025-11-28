@@ -3,10 +3,8 @@ import config
 import threading
 import time
 
-send_channels = {}
-
-recv_channels = {}
-recv_lock = threading.Lock()
+ready_lock = threading.Lock()
+ready_cond = threading.Condition(ready_lock)
 
 # Event that is set once the server socket has been bound & is listening.
 server_ready = threading.Event()
@@ -17,8 +15,8 @@ def dial(retries=10, backoff=0.5):
   This makes containers resilient to startup order: peers will retry
   connecting if a remote listener isn't ready yet.
   """
-  for i, host in enumerate(config.PEERS):
-    if i == config.ID:
+  for host in config.PEERS.keys():
+    if host == config.NAME:
       continue
 
     attempt = 0
@@ -28,7 +26,7 @@ def dial(retries=10, backoff=0.5):
         s.settimeout(2.0)
         s.connect((host, config.PORT))
         # success
-        send_channels[host] = s
+        config.PEERS[host]["send_channel"] = s
         print(f"[SEND] Connected to {host}:{config.PORT}")
         with ready_cond:
           ready_cond.notify_all()
@@ -40,17 +38,28 @@ def dial(retries=10, backoff=0.5):
     else:
       print(f"[SEND] Giving up connecting to {host} after {retries} attempts")
 
-
 def handle_connection(conn, addr):
-  host, port = addr
-  print(f"[RECV] Incoming connection from {host}:{port}")
+  ip, port = addr
+  print(f"[RECV] Incoming connection from {ip}:{port}")
 
-  with recv_lock:
-    recv_channels[host] = conn
+  try:
+    hostname = socket.gethostbyaddr(ip)[0]
+  except socket.herror:
+    hostname = ip  # fallback if no reverse DNS
+
+  print(f"[RECV] Resolved hostname: {hostname}")
+
+  peer_name = extract_peer_name(hostname)
+  config.PEERS[peer_name]["recv_channel"] = conn
 
   with ready_cond:
     ready_cond.notify_all()
 
+def extract_peer_name(hostname: str) -> str:
+  try:
+    return hostname.split('.')[0].split('-')[1]
+  except Exception:
+    return hostname
 
 def listen():
   server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -77,26 +86,23 @@ def start_listener(wait=True, timeout=5.0):
     if not ok:
       print(f"[WARN] Listener didn't become ready within {timeout} seconds")
 
-ready_lock = threading.Lock()
-ready_cond = threading.Condition(ready_lock)
-
 def expected_peers():
-  return len(config.PEERS) - 1
-
-def wait_for_send_channels():
-  expected = expected_peers()
-  with ready_cond:
-    while len(send_channels) < expected:
-      ready_cond.wait()
-
-def wait_for_recv_channels():
-  expected = expected_peers()
-  with ready_cond:
-    while len(recv_channels) < expected:
-      ready_cond.wait()
+  return len(config.PEER_NAMES) - 1
 
 def wait_for_all_channels():
   expected = expected_peers()
   with ready_cond:
-    while (len(send_channels) < expected or len(recv_channels) < expected):
+    while True:
+      # Count how many send_channels are established
+      send_channels = sum(
+        1 for host, ch in config.PEERS.items() if ch.get("send_channel") is not None
+      )
+
+      recv_channels = sum(
+        1 for host, ch in config.PEERS.items() if ch.get("recv_channel") is not None
+      )
+
+      if send_channels == expected and recv_channels == expected:
+        break
+
       ready_cond.wait()
