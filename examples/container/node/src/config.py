@@ -10,6 +10,10 @@ logging.basicConfig(
 )
 
 # System parameters
+ID = None
+OBSERVER = {
+  "hostname": "observer"
+}
 PEER_NAMES = ["alpha", "bravo", "charlie", "delta"]
 NAME = None
 PORT = 5000
@@ -35,12 +39,13 @@ def setup():
   if args.id >= len(PEER_NAMES):
     raise ValueError("Invalid id")
 
+  ID = args.id
   PEERS = {
     name: { "id": i }
     for i, name in enumerate(PEER_NAMES)
   }
 
-  NAME = PEER_NAMES[args.id]
+  NAME = PEER_NAMES[ID]
   PRIVATE_KEY, PUBLIC_KEY = keys.generate()
 
 def parse():

@@ -12,8 +12,8 @@ ENV APP_HOME=/usr/hashgraph
 WORKDIR ${APP_HOME}
 
 # 4. Copy your project (must be inside build context)
-COPY "../../toy-hashgraph" ${APP_HOME}/toy-hashgraph
-COPY "../../toy-hashgraph-py" ${APP_HOME}/toy-hashgraph-py
+COPY "../../../toy-hashgraph" ${APP_HOME}/toy-hashgraph
+COPY "../../../toy-hashgraph-py" ${APP_HOME}/toy-hashgraph-py
 
 # Build your wheel
 RUN cd toy-hashgraph-py && maturin build --release
@@ -21,8 +21,8 @@ RUN cd toy-hashgraph-py && maturin build --release
 # Install it
 RUN pip install toy-hashgraph-py/target/wheels/*.whl
 
-RUN mkdir -p ${APP_HOME}/examples/container
-COPY examples/container ${APP_HOME}/examples/container
+RUN mkdir -p ${APP_HOME}/examples/container/node/src
+COPY examples/container/node/src ${APP_HOME}/examples/container/node/src
 
 # 6. Default command to run your Python example
-ENTRYPOINT ["python", "examples/container/src/main.py"]
+ENTRYPOINT ["python", "examples/container/node/src/main.py"]
