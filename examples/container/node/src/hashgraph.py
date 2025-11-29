@@ -1,8 +1,10 @@
 import logging
 import time
+import threading
 
 from toy_hashgraph import Hashgraph
 import config
+import gossip
 
 def handle_transaction(msg: dict):
   if config.HASHGRAPH is None:
@@ -10,7 +12,18 @@ def handle_transaction(msg: dict):
     return
 
   tx_data = msg.get("txn_data").encode()
-  config.HASHGRAPH.append_transaction(tx_data)
+
+  with config.HASHGRAPH_LOCK:
+    timestamp = int(time.time())
+    config.HASHGRAPH.append_transaction(tx_data)
+
+  with config.SIMULATION_EVENTS_LOCK:
+    config.SIMULATION_EVENTS.append({
+      'type': 'transaction',
+      'peer': config.ID,
+      'transaction': msg.get("txn_data"),
+      'time': timestamp
+    })
 
   logging.info(f"[{int(time.time())}s] Appended transaction: {msg.get("txn_data")}")
 
@@ -28,3 +41,7 @@ def handle_initial_timestamp(msg: dict):
   )
 
   logging.info(f"Initialized hashgraph with timestamp {config.INITIAL_TIMESTAMP}")
+
+  threading.Thread(target=gossip.gossip, args=(), daemon=True).start()
+
+  logging.info("Started gossip thread")

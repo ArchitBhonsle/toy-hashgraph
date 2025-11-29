@@ -5,7 +5,7 @@ import threading
 import keys
 
 logging.basicConfig(
-  level=logging.INFO,
+  level=logging.DEBUG,
   format='[%(levelname)s] %(asctime)s - %(message)s'
 )
 
@@ -23,7 +23,11 @@ PRIVATE_KEY = None
 
 # Hashgraph paramters
 INITIAL_TIMESTAMP = None
+HASHGRAPH_LOCK = threading.Lock()
 HASHGRAPH = None
+GOSSIP_INTERVAL = 5
+SIMULATION_EVENTS_LOCK = threading.Lock()
+SIMULATION_EVENTS = []
 
 keys_ready_cond = threading.Condition()
 
