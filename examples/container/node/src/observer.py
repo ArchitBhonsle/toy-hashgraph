@@ -6,6 +6,7 @@ import json
 import time
 
 import config
+import hashgraph
 
 def handle_echo(msg: dict):
   """
@@ -15,6 +16,8 @@ def handle_echo(msg: dict):
 
 MESSAGE_HANDLERS = {
   "echo": handle_echo,
+  "initial_timestamp": hashgraph.handle_initial_timestamp,
+  "transaction": hashgraph.handle_transaction
   # Add new message types here
 }
 
@@ -56,7 +59,7 @@ def poll():
           sel.unregister(sock)
           sock.close()
           config.OBSERVER["channel"] = None
-          continue
+          return;
 
         msg = parse_message(data)
         if not msg:
@@ -64,9 +67,13 @@ def poll():
           continue
 
         msg_type = msg.get("type")
+        if msg_type == "quit":
+          logging.info("Quitting")
+          return;
+
         handler = MESSAGE_HANDLERS.get(msg_type)
         if handler:
-          handler(peer_name, msg)
+          handler(msg)
         else:
           logging.warning(f"[RECV] Unknown message type '{msg_type}' from {peer_name}")
 
