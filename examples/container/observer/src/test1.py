@@ -18,7 +18,7 @@ def run():
     })
   )
 
-  time.sleep(60)
+  time.sleep(600)
 
   for peer in config.PEERS:
     config.NODES[peer].get("channel").sendall(network.build_message({

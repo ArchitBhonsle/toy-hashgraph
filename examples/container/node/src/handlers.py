@@ -1,7 +1,19 @@
 import logging
 import base64
+import time
 
 import config
+
+def handle_gossip(peer_name: str, msg: dict):
+  if config.HASHGRAPH is None:
+    logging.info("Recieved gossip, but hashgraph wasn't initialized")
+    return
+
+  data = base64.b64decode(msg["hashgraph"])
+  with config.HASHGRAPH_LOCK:
+    config.HASHGRAPH.receive(data, int(time.time()))
+
+  logging.debug(f"handle_gossip: Handled gossip from peer f{peer_name}")
 
 def handle_key_exchange(peer_name: str, msg: dict):
   """
@@ -26,5 +38,6 @@ def handle_echo(peer_name: str, msg: dict):
 MESSAGE_HANDLERS = {
   "key_exchange": handle_key_exchange,
   "echo": handle_echo,
+  "gossip": handle_gossip
   # Add new message types here
 }
