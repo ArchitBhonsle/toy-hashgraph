@@ -5,6 +5,7 @@ import time
 import config
 import peers
 import network
+import observer
 from toy_hashgraph import Hashgraph
 
 def main():
@@ -26,16 +27,20 @@ def main():
   wait_for_other_keys()
   logging.info("Received public keeys from all peers")
 
-  config.HASHGRAPH = Hashgraph(
-    config.ID,
-    initial_timestamp,
-    config.PRIVATE_KEY,
-    [
-      config.PEERS[peer]["public_key"]
-      for peer in config.PEERS
-      if peer != config.NAME
-    ]
-  )
+  observer.dial()
+  observer.register()
+  observer.start_polling_thread()
+
+  # config.HASHGRAPH = Hashgraph(
+  #   config.ID,
+  #   initial_timestamp,
+  #   config.PRIVATE_KEY,
+  #   [
+  #     config.PEERS[peer]["public_key"]
+  #     for peer in config.PEERS
+  #     if peer != config.NAME
+  #   ]
+  # )
 
   time.sleep(30)
 

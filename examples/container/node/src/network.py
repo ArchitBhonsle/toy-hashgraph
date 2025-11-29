@@ -59,8 +59,6 @@ def start_polling_thread():
   t.start()
   return t
 
-import json
-
 def build_message(payload: dict) -> bytes:
   """
   Build a JSON message from a dictionary and encode it to bytes.

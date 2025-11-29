@@ -1,27 +1,34 @@
 services:
+  observer:
+    image: hashgraph-observer
+    networks:
+      - mynetwork
+    hostname: "observer"
+    command: -id 1
+
   alpha:
-    image: hashgraph
+    image: hashgraph-node
     networks:
       - mynetwork
     hostname: "alpha"
     command: -id 0
 
   bravo:
-    image: hashgraph
+    image: hashgraph-node
     networks:
       - mynetwork
     hostname: "bravo"
     command: -id 1
 
   charlie:
-    image: hashgraph
+    image: hashgraph-node
     networks:
       - mynetwork
     hostname: "charlie"
     command: -id 2
 
   delta:
-    image: hashgraph
+    image: hashgraph-node
     networks:
       - mynetwork
     hostname: "delta"
