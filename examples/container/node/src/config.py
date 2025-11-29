@@ -20,11 +20,15 @@ PORT = 5000
 PEERS = None
 PUBLIC_KEY = None
 PRIVATE_KEY = None
+
+# Hashgraph paramters
+INITIAL_TIMESTAMP = None
 HASHGRAPH = None
 
 keys_ready_cond = threading.Condition()
 
 def setup():
+  global ID
   global NAME
   global PEERS
   global PUBLIC_KEY
@@ -47,6 +51,7 @@ def setup():
 
   NAME = PEER_NAMES[ID]
   PRIVATE_KEY, PUBLIC_KEY = keys.generate()
+  PEERS[NAME]["public_key"] = PUBLIC_KEY
 
 def parse():
   parser = argparse.ArgumentParser()

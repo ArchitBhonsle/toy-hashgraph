@@ -29,20 +29,7 @@ def main():
 
   observer.dial()
   observer.register()
-  observer.start_polling_thread()
-
-  # config.HASHGRAPH = Hashgraph(
-  #   config.ID,
-  #   initial_timestamp,
-  #   config.PRIVATE_KEY,
-  #   [
-  #     config.PEERS[peer]["public_key"]
-  #     for peer in config.PEERS
-  #     if peer != config.NAME
-  #   ]
-  # )
-
-  time.sleep(30)
+  observer.poll()
 
 def send_keys_to_all_peers():
   for peer_name in config.PEERS:
