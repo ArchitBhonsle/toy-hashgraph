@@ -4,9 +4,34 @@ import socket
 import threading
 import json
 import time
+import base64
+import copy
 
 import config
 import hashgraph
+import network
+
+def handle_export_hashgraph(msg: dict):
+  if not config.HASHGRAPH:
+    hashgraph = None
+  else:
+    with config.HASHGRAPH_LOCK:
+      data = config.HASHGRAPH.send()
+      hashgraph = base64.b64encode(data).decode()
+
+  config.OBSERVER.get("channel").sendall(network.build_message({
+    "type": "hashgraph",
+    "hashgraph": hashgraph
+  }))
+
+def handle_export_simulation_events(msg: dict):
+  with config.SIMULATION_EVENTS_LOCK:
+    simulation_events = copy.deepcopy(config.SIMULATION_EVENTS)
+
+  config.OBSERVER.get("channel").sendall(network.build_message({
+    "type": "simulation_events",
+    "simulation_events": simulation_events
+  }))
 
 def handle_echo(msg: dict):
   """
@@ -17,7 +42,9 @@ def handle_echo(msg: dict):
 MESSAGE_HANDLERS = {
   "echo": handle_echo,
   "initial_timestamp": hashgraph.handle_initial_timestamp,
-  "transaction": hashgraph.handle_transaction
+  "transaction": hashgraph.handle_transaction,
+  "export_hashgraph": handle_export_hashgraph,
+  "export_simulation_events": handle_export_simulation_events
   # Add new message types here
 }
 
