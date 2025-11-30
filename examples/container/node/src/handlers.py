@@ -13,7 +13,7 @@ def handle_gossip(peer_name: str, msg: dict):
   with config.HASHGRAPH_LOCK:
     config.HASHGRAPH.receive(data, int(time.time()))
 
-  logging.debug(f"handle_gossip: Handled gossip from peer f{peer_name}")
+  logging.debug(f"handle_gossip: Handled gossip from peer {peer_name}")
 
 def handle_key_exchange(peer_name: str, msg: dict):
   """
