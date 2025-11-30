@@ -6,7 +6,7 @@ services:
     volumes:
       - ./observer/images:/usr/hashgraph-observer/images
     hostname: "observer"
-    command: -id 1
+    command: -id 2
 
   alpha:
     image: hashgraph-node
