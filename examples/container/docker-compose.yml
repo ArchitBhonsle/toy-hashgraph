@@ -3,6 +3,8 @@ services:
     image: hashgraph-observer
     networks:
       - mynetwork
+    volumes:
+      - ./observer/images:/usr/hashgraph-observer/images
     hostname: "observer"
     command: -id 1
 

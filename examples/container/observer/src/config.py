@@ -9,11 +9,18 @@ NODES = {
 TESTCASE = None
 PORT = 5000
 
+# Visualization
+OUTPUT_DIR = "/usr/hashgraph-observer/images"
+PEER_VIEWS_FILENAME = "/usr/hashgraph-observer/images/hashgraph_peer_views.png"
+TIMELINE_FILENAME = "/usr/hashgraph-observer/images/hashgraph_timeline.png"
+MERGED_GRAPH_FILENAME = "/usr/hashgraph-observer/images/hashgraph_merged.png"
+DPI = 150
+
 def setup():
   global TESTCASE
 
   logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format='[%(levelname)s] %(asctime)s - %(message)s'
   )
 
