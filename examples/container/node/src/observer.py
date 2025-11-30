@@ -13,25 +13,26 @@ import network
 
 def handle_export_hashgraph(msg: dict):
   if not config.HASHGRAPH:
-    hashgraph = None
+    hashgraph_data = None
   else:
     with config.HASHGRAPH_LOCK:
-      data = config.HASHGRAPH.send()
-      hashgraph = base64.b64encode(data).decode()
+      hashgraph_data = config.HASHGRAPH.as_json()
 
-  config.OBSERVER.get("channel").sendall(network.build_message({
+  logging.info(hashgraph_data)
+
+  network.send_message(config.OBSERVER.get("channel"), {
     "type": "hashgraph",
-    "hashgraph": hashgraph
-  }))
+    "hashgraph": hashgraph_data
+  })
 
 def handle_export_simulation_events(msg: dict):
   with config.SIMULATION_EVENTS_LOCK:
     simulation_events = copy.deepcopy(config.SIMULATION_EVENTS)
 
-  config.OBSERVER.get("channel").sendall(network.build_message({
+  network.send_message(config.OBSERVER.get("channel"), {
     "type": "simulation_events",
     "simulation_events": simulation_events
-  }))
+  })
 
 def handle_echo(msg: dict):
   """
@@ -80,23 +81,18 @@ def poll():
       sock = key.fileobj
       peer_name = key.data
       try:
-        data = sock.recv(4096)
-        if not data:
+        msg = network.recv_message(sock)
+        if not msg:
           logging.info(f"[RECV] {peer_name} disconnected")
           sel.unregister(sock)
           sock.close()
           config.OBSERVER["channel"] = None
-          return;
-
-        msg = parse_message(data)
-        if not msg:
-          logging.warning(f"[RECV] Invalid message from {peer_name}")
-          continue
+          return
 
         msg_type = msg.get("type")
         if msg_type == "quit":
           logging.info("Quitting")
-          return;
+          return
 
         handler = MESSAGE_HANDLERS.get(msg_type)
         if handler:
@@ -114,13 +110,3 @@ def start_polling_thread():
   t = threading.Thread(target=poll, daemon=True)
   t.start()
   return t
-
-def parse_message(data: bytes) -> dict | None:
-  """
-  Decode JSON bytes into a dictionary.
-  Returns None if the data is not valid JSON.
-  """
-  try:
-    return json.loads(data.decode())
-  except Exception:
-    return None

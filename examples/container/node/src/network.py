@@ -28,17 +28,12 @@ def poll_peers():
       sock = key.fileobj
       peer_name = key.data
       try:
-        data = sock.recv(4096)
-        if not data:
+        msg = recv_message(sock)
+        if not msg:
           logging.info(f"[RECV] {peer_name} disconnected")
           sel.unregister(sock)
           sock.close()
           config.PEERS[peer_name]["recv_channel"] = None
-          continue
-
-        msg = parse_message(data)
-        if not msg:
-          logging.warning(f"[RECV] Invalid message from {peer_name}")
           continue
 
         msg_type = msg.get("type")
@@ -61,19 +56,69 @@ def start_polling_thread():
 
 def build_message(payload: dict) -> bytes:
   """
-  Build a JSON message from a dictionary and encode it to bytes.
-  Example payload:
-    {"type": "key_exchange", "key": "<public_key>"}
+  Build a length-prefixed JSON message.
+  Format: [4-byte length (big-endian)] [JSON data]
+
+  This ensures we can reliably receive large messages that may arrive
+  fragmented across multiple TCP packets.
   """
   try:
-    return json.dumps(payload).encode()
+    json_data = json.dumps(payload).encode()
+    # Prepend 4-byte length header (big-endian unsigned int)
+    length = len(json_data)
+    return length.to_bytes(4, byteorder='big') + json_data
   except Exception as e:
     raise ValueError(f"Failed to build message: {e}")
 
+def send_message(sock: socket.socket, payload: dict) -> None:
+  """
+  Send a complete length-prefixed JSON message over a socket.
+  """
+  try:
+    msg = build_message(payload)
+    sock.sendall(msg)
+  except Exception as e:
+    logging.error(f"send_message error: {e}")
+    raise
+
+def recv_message(sock: socket.socket) -> dict | None:
+  """
+  Receive a complete length-prefixed message from a socket.
+  Handles fragmentation by reading until we get the full message.
+
+  Returns the parsed JSON dict, or None if there's an error.
+  """
+  try:
+    # Read the 4-byte length header
+    length_data = b""
+    while len(length_data) < 4:
+      chunk = sock.recv(4 - len(length_data))
+      if not chunk:
+        return None  # Connection closed
+      length_data += chunk
+
+    msg_length = int.from_bytes(length_data, byteorder='big')
+
+    # Read the actual message
+    msg_data = b""
+    while len(msg_data) < msg_length:
+      chunk = sock.recv(min(4096, msg_length - len(msg_data)))
+      if not chunk:
+        return None  # Connection closed prematurely
+      msg_data += chunk
+
+    return json.loads(msg_data.decode())
+  except Exception as e:
+    logging.error(f"recv_message error: {e}")
+    return None
+
 def parse_message(data: bytes) -> dict | None:
   """
-  Decode JSON bytes into a dictionary.
+  Decode JSON bytes into a dictionary (legacy/fallback).
   Returns None if the data is not valid JSON.
+
+  Note: This is kept for backwards compatibility but should not be used
+  for messages that may be fragmented. Use recv_message() instead.
   """
   try:
     return json.loads(data.decode())
