@@ -100,7 +100,7 @@ def plot_hashgraph(state: dict, title: str, ax, all_peers=None):
 
     ax.set_xlim(-1, max(peer_x.values()) + 1)
     y_margin = max(0.05, max_y * 0.1)  # 10% margin or minimum 0.05s
-    ax.set_ylim(-y_margin, max_y + y_margin * 2)
+    ax.set_ylim(max_y + y_margin * 2, -y_margin)  # Inverted: time 0 at top
     ax.set_ylabel('Time (seconds)', fontsize=10)
     ax.set_title(title, fontsize=12, fontweight='bold', pad=10)
     ax.set_xticks([])
@@ -191,7 +191,7 @@ def plot_ground_truth(simulation_events: list, peers: list, ax):
 
     # Set axis properties
     ax.set_xlim(-0.5, max(peer_x.values()) + 0.5)
-    ax.set_ylim(-0.1, max_time + 0.2)
+    ax.set_ylim(max_time + 0.2, -0.1)  # Inverted: time 0 at top
     ax.set_ylabel('Time (seconds)', fontsize=11)
     ax.set_title('Ground Truth: Simulation Timeline', fontsize=13, fontweight='bold', pad=15)
     ax.grid(True, axis='y', alpha=0.2, linestyle='-', linewidth=0.5)
