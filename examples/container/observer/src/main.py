@@ -3,6 +3,7 @@ import importlib
 
 import config
 import nodes
+import util
 
 def main():
   config.setup()
@@ -17,6 +18,11 @@ def main():
   test_module = importlib.import_module(module_name)
 
   test_module.run()
+
+  for peer in config.PEERS:
+    util.send_message(config.NODES[peer].get("channel"), {
+      "type": "quit"
+    })
 
 if __name__ == "__main__":
   main()
