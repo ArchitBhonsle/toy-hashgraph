@@ -18,8 +18,6 @@ def handle_export_hashgraph(msg: dict):
     with config.HASHGRAPH_LOCK:
       hashgraph_data = config.HASHGRAPH.as_json()
 
-  logging.info(hashgraph_data)
-
   network.send_message(config.OBSERVER.get("channel"), {
     "type": "hashgraph",
     "hashgraph": hashgraph_data
