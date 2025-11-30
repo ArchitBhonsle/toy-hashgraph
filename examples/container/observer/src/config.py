@@ -1,5 +1,6 @@
 import argparse
 import logging
+import time
 
 PEERS = ["alpha", "bravo", "charlie", "delta"]
 NODES = {
@@ -8,6 +9,9 @@ NODES = {
 }
 TESTCASE = None
 PORT = 5000
+
+# Hashgraph
+INITIAL_TIMESTAMP = int(time.time())
 
 # Visualization
 OUTPUT_DIR = "/usr/hashgraph-observer/images"
