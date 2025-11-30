@@ -52,7 +52,7 @@ def plot_hashgraph(state: dict, title: str, ax, all_peers=None):
     if graph:
         min_timestamp = min(e["timestamp"] for e in graph.values())
     else:
-        min_timestamp = 0
+        min_timestamp = config.INITIAL_TIMESTAMP
 
     # Assign y positions based on actual timestamp (normalized to start from 0)
     event_positions = {}
@@ -60,8 +60,7 @@ def plot_hashgraph(state: dict, title: str, ax, all_peers=None):
     for event_hash, event in graph.items():
         peer = get_event_peer(graph, event_hash)
         x = peer_x[peer]
-        # Convert timestamp to relative time (in seconds)
-        y = (event["timestamp"] - min_timestamp) / 1000.0
+        y = (event["timestamp"] - min_timestamp)
         event_positions[event_hash] = (x, y)
         max_y = max(max_y, y)
 
