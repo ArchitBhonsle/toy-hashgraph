@@ -56,12 +56,10 @@ def send_transaction(receiver, txn_data):
   })
 
 def send_initial_timestamp():
-  initial_timestamp = int(time.time())
-
   for peer in config.PEERS:
     send_message(config.NODES[peer].get("channel"), {
       "type": "initial_timestamp",
-      "value": initial_timestamp
+      "value": config.INITIAL_TIMESTAMP
     })
 
 def collect_hashgraphs():
