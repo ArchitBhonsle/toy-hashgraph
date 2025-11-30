@@ -27,10 +27,10 @@ def gossip():
       continue
 
     with config.SIMULATION_EVENTS_LOCK:
-      config.PEERS[receiver]["send_channel"].sendall(network.build_message({
+      network.send_message(config.PEERS[receiver]["send_channel"], {
         "type": "gossip",
         "hashgraph": base64.b64encode(data).decode()
-      }))
+      })
 
       config.SIMULATION_EVENTS.append({
         'type': 'gossip',

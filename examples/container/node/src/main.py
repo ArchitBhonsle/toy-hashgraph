@@ -44,10 +44,9 @@ def send_public_key(peer_name: str):
 
   # Convert bytes to base64 string for JSON
   key_b64 = base64.b64encode(config.PUBLIC_KEY).decode()
-  msg = network.build_message({"type": "key_exchange", "key": key_b64})
 
   try:
-    sock.sendall(msg)
+    network.send_message(sock, {"type": "key_exchange", "key": key_b64})
     logging.debug(f"[SEND] Sent public key to {peer_name}")
   except Exception as e:
     logging.error(f"[SEND] Failed to send public key to {peer_name}: {e}")
