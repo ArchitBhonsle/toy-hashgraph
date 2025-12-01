@@ -36,7 +36,7 @@ def plot_hashgraph(state: dict, title: str, ax, all_peers=None):
         ax: Matplotlib axes to plot on
         all_peers: Optional list of all peer IDs to show lanes for (even if no events)
     """
-    graph = state["graph"]
+    graph = state["graph"]["events"]
 
     # Get all unique peers by looking at initial events
     if all_peers is not None:
@@ -213,17 +213,20 @@ def merge_all_graphs(hashgraphs: list, peers: list) -> dict:
         Merged state dictionary with all unique events
     """
     merged_graph = {}
+    total_peers = 0
 
     for peer in peers:
         state = json.loads(hashgraphs[peer])
-        graph = state["graph"]
+        graph_data = state["graph"]
+        total_peers = graph_data["total_peers"]
+        events = graph_data["events"]
 
         # Add all events from this peer's view
-        for event_hash, event in graph.items():
+        for event_hash, event in events.items():
             if event_hash not in merged_graph:
                 merged_graph[event_hash] = event
 
-    return {"graph": merged_graph}
+    return {"graph": {"total_peers": total_peers, "events": merged_graph}}
 
 
 def visualize_hashgraphs(hashgraphs: list, peers: list, simulation_events: list = None):
