@@ -62,6 +62,13 @@ def send_initial_timestamp():
       "value": config.INITIAL_TIMESTAMP
     })
 
+def send_gossip_interval(interval: int):
+  for peer in config.PEERS:
+    send_message(config.NODES[peer].get("channel"), {
+      "type": "gossip_interval",
+      "value": interval
+    })
+
 def collect_hashgraphs():
   hashgraphs = []
 
