@@ -10,7 +10,7 @@ import util
 def run():
   util.send_initial_timestamp()
 
-  simulation_duration = 60 * 10 # 10 Minutes
+  simulation_duration = 60 * 1
   transaction_interval_seconds = 20
 
   transaction_counter = 0
@@ -23,13 +23,13 @@ def run():
     cur_time = int(time.time())
     last_transaction_time = cur_time
 
-    if random.choice([True, False]):
-      peer = random.choice(config.PEERS)
-      transaction_counter += 1
-      tx_data = f"tx_{transaction_counter}"
-      util.send_transaction(peer, tx_data)
+    # if random.choice([True, False]):
+    peer = random.choice(config.PEERS)
+    transaction_counter += 1
+    tx_data = f"tx_{transaction_counter}"
+    util.send_transaction(peer, tx_data)
 
-      logging.info(f"[{cur_time}s] Submitted transaction {tx_data} to peer {peer}")
+    logging.info(f"[{cur_time}s] Submitted transaction {tx_data} to peer {peer}")
 
   hashgraphs = util.collect_hashgraphs()
 
