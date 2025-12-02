@@ -21,6 +21,9 @@ PEERS = None
 PUBLIC_KEY = None
 PRIVATE_KEY = None
 
+# Metrics
+NUM_GOSSIPS_SENT = 0
+
 # Hashgraph paramters
 INITIAL_TIMESTAMP = None
 HASHGRAPH_LOCK = threading.Lock()
@@ -49,7 +52,7 @@ def setup():
 
   ID = args.id
   PEERS = {
-    name: { "id": i }
+    name: { "id": i, "gossips_sent": 0, "gossips_received": 0 }
     for i, name in enumerate(PEER_NAMES)
   }
 

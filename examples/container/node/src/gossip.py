@@ -32,11 +32,13 @@ def gossip():
         "hashgraph": base64.b64encode(data).decode()
       })
 
-      config.SIMULATION_EVENTS.append({
-        'type': 'gossip',
-        'sender': config.ID,
-        'receiver': config.PEER_NAMES.index(receiver),
-        'time': timestamp
-      })
+    config.PEERS[receiver]["gossips_sent"] += 1
+
+    config.SIMULATION_EVENTS.append({
+      'type': 'gossip',
+      'sender': config.ID,
+      'receiver': config.PEER_NAMES.index(receiver),
+      'time': timestamp
+    })
 
     logging.debug(f"Gossiped to {receiver}")
