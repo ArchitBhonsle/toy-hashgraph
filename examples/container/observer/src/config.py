@@ -24,7 +24,7 @@ def setup():
   global TESTCASE
 
   logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format='[%(levelname)s] %(asctime)s - %(message)s'
   )
 
