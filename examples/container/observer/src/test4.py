@@ -91,7 +91,7 @@ def get_transactions_in_consensus_order(peer_i, data, graph):
   transactions = [(bytes.fromhex(h), e) for h, e in data["events"].items() if e["kind"] == "default" and e["transactions"]]
 
   commited_transactions = [transaction for transaction in transactions if graph.round_received(transaction[0]) is not None]
-  logging.info(f"{len(commited_transactions)} out of {len(transactions)} were commited by {config.PEERS[peer_i]}")
+  logging.info(f"{len(commited_transactions)} out of {len(transactions)} transactions were commited by {config.PEERS[peer_i]}")
 
   commited_transactions.sort(key=cmp_to_key(lambda a, b: graph.consensus_ordering(a[0], b[0]) or 0))
   return [bytes.fromhex(commited_transaction[1]["transactions"]).decode() for commited_transaction in commited_transactions]
