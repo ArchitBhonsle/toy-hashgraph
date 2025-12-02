@@ -85,7 +85,7 @@ def plot_hashgraph(state: dict, title: str, ax, all_peers=None):
 
     # Draw events as circles using scatter (maintains circular shape)
     for event_hash, (x, y) in event_positions.items():
-        ax.scatter(x, y, s=400, c='white', edgecolors='black',
+        ax.scatter(x, y, s=400, c='white', edgecolors='red' if graph[event_hash]["kind"] == "default" and graph[event_hash]["transactions"] else 'black',
                   linewidths=1.5, zorder=2, marker='o')
 
         # Label with short hash in monospace font
@@ -241,9 +241,29 @@ def visualize_hashgraphs(hashgraphs: list, peers: list, simulation_events: list 
     # Create output directory if it doesn't exist
     os.makedirs(config.OUTPUT_DIR, exist_ok=True)
 
+    # Create merged graph from all peer views
+    merged_state = merge_all_graphs(hashgraphs, peers)
+
+    # Compute timespan (seconds) across all events so we can scale figure heights
+    events = merged_state["graph"]["events"] if "events" in merged_state["graph"] else {}
+    if events:
+        timestamps = [e["timestamp"] for e in events.values() if "timestamp" in e]
+        timespan = max(timestamps) - min(timestamps) if timestamps else 0
+    else:
+        timespan = 0
+
+    # Scale heights: keep base sizes but grow the height with timespan
+    seconds_per_inch = 5.0
+    merged_base_height = 8
+    merged_figheight = max(merged_base_height, merged_base_height + (timespan / seconds_per_inch))
+
+    # Timeline height (slightly smaller growth)
+    timeline_base_height = 6
+    timeline_figheight = max(timeline_base_height, timeline_base_height + (timespan / (seconds_per_inch * 1.5)))
+
     # Save timeline separately if available
     if simulation_events:
-        fig_timeline = plt.figure(figsize=(8, 6))
+        fig_timeline = plt.figure(figsize=(8, timeline_figheight))
         ax_timeline = fig_timeline.add_subplot(111)
         plot_ground_truth(simulation_events, peers, ax_timeline)
         plt.tight_layout()
@@ -251,11 +271,10 @@ def visualize_hashgraphs(hashgraphs: list, peers: list, simulation_events: list 
         print(f"Saved timeline to {config.TIMELINE_FILENAME}")
         plt.close(fig_timeline)
 
-    # Create merged graph from all peer views
-    merged_state = merge_all_graphs(hashgraphs, peers)
-    fig_merged = plt.figure(figsize=(10, 8))
+    # Merged graph (height scales with timespan)
+    fig_merged = plt.figure(figsize=(10, merged_figheight))
     ax_merged = fig_merged.add_subplot(111)
-    plot_hashgraph(merged_state, f"Merged Graph ({len(merged_state['graph'])} events)", ax_merged, all_peers=peers)
+    plot_hashgraph(merged_state, f"Merged Graph ({len(merged_state['graph']['events'])} events)", ax_merged, all_peers=peers)
     plt.tight_layout()
     plt.savefig(config.MERGED_GRAPH_FILENAME, dpi=config.DPI, bbox_inches='tight')
     print(f"Saved merged graph to {config.MERGED_GRAPH_FILENAME}")
@@ -266,14 +285,21 @@ def visualize_hashgraphs(hashgraphs: list, peers: list, simulation_events: list 
     rows = 2
     cols = 2
 
-    fig, axes = plt.subplots(rows, cols, figsize=(12, 12))
+    # Make peer view figure height scale with merged figure height so each
+    # subplot has enough vertical space when there are many events.
+    per_plot_min_height = 4
+    per_plot_height = max(per_plot_min_height, merged_figheight / rows)
+    total_peer_height = per_plot_height * rows
+
+    fig, axes = plt.subplots(rows, cols, figsize=(12, total_peer_height))
     axes = axes.flatten()  # Flatten to 1D array for easy indexing
 
     # Plot each peer's view (showing all peer lanes)
     for i, peer in enumerate(peers):
         if i < len(axes):
             state = json.loads(hashgraphs[peer])
-            plot_hashgraph(state, f"Peer {peer}'s View ({len(state['graph'])} events)", axes[i], all_peers=peers)
+            num_events = len(state['graph']['events']) if 'events' in state['graph'] else 0
+            plot_hashgraph(state, f"Peer {peer}'s View ({num_events} events)", axes[i], all_peers=peers)
 
     # Hide any unused subplots
     for i in range(num_peers, len(axes)):
