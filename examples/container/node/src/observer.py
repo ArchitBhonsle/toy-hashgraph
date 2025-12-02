@@ -43,7 +43,8 @@ MESSAGE_HANDLERS = {
   "initial_timestamp": hashgraph.handle_initial_timestamp,
   "transaction": hashgraph.handle_transaction,
   "export_hashgraph": handle_export_hashgraph,
-  "export_simulation_events": handle_export_simulation_events
+  "export_simulation_events": handle_export_simulation_events,
+  "gossip_interval": hashgraph.handle_gossip_interval
   # Add new message types here
 }
 

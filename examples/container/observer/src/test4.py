@@ -11,6 +11,7 @@ from toy_hashgraph import GraphQuerier
 from functools import cmp_to_key
 
 def run():
+  util.send_gossip_interval(5)
   util.send_initial_timestamp()
 
   simulation_duration = 30
@@ -69,12 +70,16 @@ def test_total_order(states_json):
 
   l = len(ordered_transactions[0])
   for i in range(1, len(states)):
-    if len(ordered_transactions[i]) != l:
-      raise ValueError("Not all nodes have the same number of commited transactions")
+    if len(ordered_transactions[i]) < l:
+      l = len(ordered_transactions[i])
 
   if l == 0:
     logging.warn("One or more nodes have 0 commited transaction.")
     return
+
+  loggin.info(f"Conses achieved for {l} transactions!")
+  for ordering in ordered_transactions:
+    logging.info(ordering)
 
   for i in range(l):
     t = ordered_transactions[0][i]

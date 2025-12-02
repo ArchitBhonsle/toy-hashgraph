@@ -6,6 +6,10 @@ from toy_hashgraph import Hashgraph
 import config
 import gossip
 
+def handle_gossip_interval(msg: dict):
+  config.GOSSIP_INTERVAL = msg.get("value")
+  logging.debug(f"Set gossip interval to {config.GOSSIP_INTERVAL}")
+
 def handle_transaction(msg: dict):
   if config.HASHGRAPH is None:
     logging.info("Hashgraph hasn't been initialized")

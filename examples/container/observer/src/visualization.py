@@ -85,8 +85,9 @@ def plot_hashgraph(state: dict, title: str, ax, all_peers=None):
 
     # Draw events as circles using scatter (maintains circular shape)
     for event_hash, (x, y) in event_positions.items():
-        ax.scatter(x, y, s=400, c='white', edgecolors='red' if graph[event_hash]["kind"] == "default" and graph[event_hash]["transactions"] else 'black',
-                  linewidths=1.5, zorder=2, marker='o')
+        transactional = graph[event_hash]["kind"] == "default" and graph[event_hash]["transactions"]
+        ax.scatter(x, y, s=400, c='white', edgecolors='red' if transactional else 'black',
+                  linewidths=1.5, zorder=3 if transactional else 2, marker='o')
 
         # Label with short hash in monospace font
         short_hash = event_hash[:4]
