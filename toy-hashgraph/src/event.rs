@@ -41,13 +41,10 @@ impl EventTrait for Event {
     }
 
     fn as_bytes(&self) -> Vec<u8> {
-        let mut buffer = Vec::new();
-        buffer.push(self.variant_id());
-        match self {
-            Event::Initial(initial) => buffer.append(&mut initial.as_bytes()),
-            Event::Default(default) => buffer.append(&mut default.as_bytes()),
-        };
-        buffer
+        let mut content = self.content_bytes();
+        let hashed = sha2::Sha256::digest(&content);
+        content.extend_from_slice(&hashed);
+        content
     }
 
     fn from_bytes(bytes: &[u8]) -> (Self, usize) {
@@ -65,7 +62,31 @@ impl EventTrait for Event {
             }
             _ => panic!("unreachable event variant id: {}", variant),
         };
-        (event, 1 + consumed)
+
+        let content_len = 1 + consumed;
+        let total_len = content_len + common::HASH_SIZE;
+
+        assert!(bytes.len() >= total_len, "event bytes must include hash");
+
+        let stored_hash = &bytes[content_len..total_len];
+        let computed = sha2::Sha256::digest(&bytes[0..content_len]);
+
+        if stored_hash != computed.as_slice() {
+            panic!("event hash mismatch: stored hash does not match computed hash");
+        }
+
+        (event, total_len)
+    }
+
+    fn hash(&self) -> common::Hash {
+        let content = self.content_bytes();
+        let hashed = sha2::Sha256::digest(&content);
+        assert_eq!(hashed.len(), common::HASH_SIZE);
+
+        let mut buffer = [0; common::HASH_SIZE];
+        buffer.copy_from_slice(hashed.as_slice());
+
+        buffer
     }
 
     fn timestamp(&self) -> u64 {
@@ -77,6 +98,16 @@ impl EventTrait for Event {
 }
 
 impl Event {
+    fn content_bytes(&self) -> Vec<u8> {
+        let mut buffer = Vec::new();
+        buffer.push(self.variant_id());
+        match self {
+            Event::Initial(initial) => buffer.append(&mut initial.as_bytes()),
+            Event::Default(default) => buffer.append(&mut default.as_bytes()),
+        };
+        buffer
+    }
+
     pub fn events_from_bytes(data: &[u8]) -> Vec<Event> {
         let mut cursor = data;
         let mut events = Vec::new();

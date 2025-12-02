@@ -2,7 +2,7 @@
 members = [
     "toy-hashgraph",
     "toy-hashgraph-py",
-    # "toy-hashgraph-js",
+    "toy-hashgraph-js",
 ]
 resolver = "2"
 
