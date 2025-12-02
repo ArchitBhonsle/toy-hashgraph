@@ -34,7 +34,7 @@ def run():
 
     logging.info(f"[{cur_time}s] Submitted transaction {tx_data} to peer {peer}")
 
-  time.sleep(30)
+  time.sleep(60 * 2)
 
   states_json = util.collect_hashgraphs()
 
@@ -90,4 +90,4 @@ def get_transactions_in_consensus_order(data, graph):
   logging.info(f"{len(commited_transactions)} were commited")
 
   commited_transactions.sort(key=cmp_to_key(lambda a, b: graph.consensus_ordering(a[0], b[0]) or 0))
-  return [bytes.fromhex(commited_transaction["transactions"]).decode for commited_transaction in commited_transactions]
+  return [bytes.fromhex(commited_transaction[1]["transactions"]).decode() for commited_transaction in commited_transactions]
