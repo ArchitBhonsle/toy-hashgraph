@@ -27,7 +27,6 @@ def run():
     cur_time = int(time.time())
     last_transaction_time = cur_time
 
-    # if random.choice([True, False]):
     peer = random.choice(config.PEERS)
     transaction_counter += 1
     tx_data = f"tx_{transaction_counter}"
@@ -35,7 +34,7 @@ def run():
 
     logging.info(f"[{cur_time}s] Submitted transaction {tx_data} to peer {peer}")
 
-  time.sleep(60)
+  time.sleep(60 * 2)
 
   states_json = util.collect_hashgraphs()
 
@@ -62,11 +61,13 @@ def test_total_order(states_json):
   ordered_transactions = []
 
   for i, graph_querier in enumerate(graph_queriers):
-    ordering = get_transactions_in_consensus_order(states[i]["graph"], graph_querier)
+    ordering = get_transactions_in_consensus_order(i, states[i]["graph"], graph_querier)
     ordered_transactions.append(ordering)
 
-  for ordering in ordered_transactions:
-    logging.info(ordering)
+  logging.info("")
+  logging.info("Transactions:")
+  for i, ordering in enumerate(ordered_transactions):
+    logging.info(f"Peer {config.PEERS[i]}: {ordering}")
 
   l = len(ordered_transactions[0])
   for i in range(1, len(states)):
@@ -77,9 +78,8 @@ def test_total_order(states_json):
     logging.warn("One or more nodes have 0 commited transaction.")
     return
 
-  loggin.info(f"Conses achieved for {l} transactions!")
-  for ordering in ordered_transactions:
-    logging.info(ordering)
+  logging.info("")
+  logging.info(f"Conses achieved for {l} transactions!")
 
   for i in range(l):
     t = ordered_transactions[0][i]
@@ -87,12 +87,11 @@ def test_total_order(states_json):
       if t != ordered_transactions[j][i]:
         raise ValueError(f"Mismatching {i}th transaction")
 
-def get_transactions_in_consensus_order(data, graph):
+def get_transactions_in_consensus_order(peer_i, data, graph):
   transactions = [(bytes.fromhex(h), e) for h, e in data["events"].items() if e["kind"] == "default" and e["transactions"]]
-  logging.info(f"Found {len(transactions)} transactions")
 
   commited_transactions = [transaction for transaction in transactions if graph.round_received(transaction[0]) is not None]
-  logging.info(f"{len(commited_transactions)} were commited")
+  logging.info(f"{len(commited_transactions)} out of {len(transactions)} were commited by {config.PEERS[peer_i]}")
 
   commited_transactions.sort(key=cmp_to_key(lambda a, b: graph.consensus_ordering(a[0], b[0]) or 0))
   return [bytes.fromhex(commited_transaction[1]["transactions"]).decode() for commited_transaction in commited_transactions]
