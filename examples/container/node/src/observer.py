@@ -45,7 +45,6 @@ MESSAGE_HANDLERS = {
   "export_hashgraph": handle_export_hashgraph,
   "export_simulation_events": handle_export_simulation_events,
   "gossip_interval": hashgraph.handle_gossip_interval
-  # Add new message types here
 }
 
 def dial(retries=10, backoff=0.5):
