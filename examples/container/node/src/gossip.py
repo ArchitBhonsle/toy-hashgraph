@@ -26,19 +26,20 @@ def gossip():
     if receiver == config.NAME:
       continue
 
-    with config.SIMULATION_EVENTS_LOCK:
-      network.send_message(config.PEERS[receiver]["send_channel"], {
-        "type": "gossip",
-        "hashgraph": base64.b64encode(data).decode()
-      })
+    network.send_message(config.PEERS[receiver]["send_channel"], {
+      "type": "gossip",
+      "hashgraph": base64.b64encode(data).decode()
+    })
 
     config.PEERS[receiver]["gossips_sent"] += 1
 
-    config.SIMULATION_EVENTS.append({
-      'type': 'gossip',
-      'sender': config.ID,
-      'receiver': config.PEER_NAMES.index(receiver),
-      'time': timestamp
-    })
+    # Simulation events are recorded for analysis purpose.
+    with config.SIMULATION_EVENTS_LOCK:
+      config.SIMULATION_EVENTS.append({
+        'type': 'gossip',
+        'sender': config.ID,
+        'receiver': config.PEER_NAMES.index(receiver),
+        'time': timestamp
+      })
 
     logging.debug(f"Gossiped to {receiver}")
